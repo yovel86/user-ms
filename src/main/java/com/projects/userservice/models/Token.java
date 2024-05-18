@@ -3,6 +3,8 @@ package com.projects.userservice.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 @Entity
 public class Token {
@@ -11,5 +13,6 @@ public class Token {
     private String value;
     @ManyToOne
     private User user;
-    private int expiresAt;
+    private Date expiresAt; // 30 days
+    private boolean isActive;
 }

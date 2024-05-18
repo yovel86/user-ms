@@ -1,28 +1,35 @@
 package com.projects.userservice.services;
 
-import com.projects.userservice.exceptions.UserAlreadyExistsException;
+import com.projects.userservice.exceptions.*;
+import com.projects.userservice.models.Token;
 import com.projects.userservice.models.User;
+import com.projects.userservice.repositories.TokenRepository;
 import com.projects.userservice.repositories.UserRepository;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, TokenRepository tokenRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.tokenRepository = tokenRepository;
     }
 
     @Override
-    public User signUp(String name, String email, String password) throws UserAlreadyExistsException {
+    public User signup(String name, String email, String password) throws UserAlreadyExistsException {
         Optional<User> userOptional = this.userRepository.findUserByEmail(email);
         if(userOptional.isPresent()) throw new UserAlreadyExistsException("User already exists");
         User user = new User();
@@ -31,6 +38,53 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = this.bCryptPasswordEncoder.encode(password);
         user.setPassword(encodedPassword);
         return this.userRepository.save(user);
+    }
+
+    @Override
+    public Token login(String email, String password) throws InvalidEmailException, InvalidPasswordException {
+        Optional<User> userOptional = this.userRepository.findUserByEmail(email);
+        if(userOptional.isEmpty()) throw new InvalidEmailException("Invalid Email ID");
+        User user = userOptional.get();
+        boolean passwordMatches = this.bCryptPasswordEncoder.matches(password, user.getPassword());
+        if(passwordMatches) {
+            // Issue a Token
+            String value = RandomStringUtils.randomAlphanumeric(128);
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DATE, 30);
+            Date thirtyDaysLater = calendar.getTime();
+            Token token = new Token();
+            token.setValue(value);
+            token.setUser(user);
+            token.setExpiresAt(thirtyDaysLater);
+            token.setActive(true);
+            return this.tokenRepository.save(token);
+        } else {
+            throw new InvalidPasswordException("Invalid Password");
+        }
+    }
+
+    @Override
+    public Token validateToken(String tokenValue) throws InvalidTokenException, ExpiredTokenException {
+        Optional<Token> tokenOptional = this.tokenRepository.findByValue(tokenValue);
+        if(tokenOptional.isEmpty()) throw new InvalidTokenException("Invalid Token");
+        Token token = tokenOptional.get();
+        Date expiresAt = token.getExpiresAt();
+        Date now = new Date();
+        if(now.after(expiresAt) || !token.isActive()) {  // check expiry
+            throw new ExpiredTokenException("Token has expired");
+        }
+        return token;
+    }
+
+    @Override // Soft Delete the Token
+    public void logout(String tokenValue) throws InvalidTokenException {
+        Optional<Token> tokenOptional = this.tokenRepository.findByValue(tokenValue);
+        if(tokenOptional.isEmpty()) throw new InvalidTokenException("Invalid Token");
+        Token token = tokenOptional.get();
+        if(token.isActive()) {
+            token.setActive(false);
+            this.tokenRepository.save(token);
+        }
     }
 
 }

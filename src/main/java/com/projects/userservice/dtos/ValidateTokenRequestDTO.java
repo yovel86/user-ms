@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class ValidateTokenRequestDTO {
-    private String token;
+    private String tokenValue;
 }
