@@ -5,7 +5,6 @@ import com.projects.userservice.models.Token;
 import com.projects.userservice.models.User;
 import com.projects.userservice.repositories.TokenRepository;
 import com.projects.userservice.repositories.UserRepository;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,12 +16,14 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
+    private final JwtService jwtService;
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, TokenRepository tokenRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserServiceImpl(JwtService jwtService, UserRepository userRepository, TokenRepository tokenRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
@@ -51,10 +52,10 @@ public class UserServiceImpl implements UserService {
             int numberOfActiveSessions = this.tokenRepository.findNumberOfActiveSessions(user.getId());
             if(numberOfActiveSessions >= 2) throw new SessionCountExceededException("At Max, Only 2 Active Sessions Are Allowed");
             // Issue a Token
-            String value = RandomStringUtils.randomAlphanumeric(128);
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, 30);
             Date thirtyDaysLater = calendar.getTime();
+            String value = jwtService.generateToken(user, thirtyDaysLater);
             Token token = new Token();
             token.setValue(value);
             token.setUser(user);
