@@ -5,6 +5,7 @@ import com.projects.userservice.dtos.LogoutRequestDTO;
 import com.projects.userservice.dtos.SignupRequestDTO;
 import com.projects.userservice.dtos.ValidateTokenRequestDTO;
 import com.projects.userservice.exceptions.ExpiredTokenException;
+import com.projects.userservice.exceptions.InvalidRequestException;
 import com.projects.userservice.exceptions.InvalidTokenException;
 import com.projects.userservice.models.Token;
 import com.projects.userservice.models.User;
@@ -35,7 +36,9 @@ public class UserController {
         String email = requestDTO.getEmail();
         String password = requestDTO.getPassword();
         try {
-            // TODO - add basic validations
+            if(name == null || name.isEmpty()) throw new InvalidRequestException("Name should not be empty");
+            if(email == null || email.isEmpty()) throw new InvalidRequestException("Email should not be empty");
+            if(password == null || password.isEmpty()) throw new InvalidRequestException("Password should not be empty");
             User user = this.userService.signup(name, email, password);
             return new ResponseEntity<>(user, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -49,9 +52,13 @@ public class UserController {
         String email = requestDTO.getEmail();
         String password = requestDTO.getPassword();
         try {
-            // TODO - add basic validations
+            if(email == null || email.isEmpty()) throw new InvalidRequestException("Email should not be empty");
+            if(password == null || password.isEmpty()) throw new InvalidRequestException("Password should not be empty");
             Token token = this.userService.login(email, password);
             return new ResponseEntity<>(token, HttpStatus.OK);
+        } catch (InvalidRequestException ire) {
+            System.out.println(ire.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

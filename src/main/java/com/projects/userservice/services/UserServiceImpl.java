@@ -22,10 +22,10 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, TokenRepository tokenRepository) {
+    public UserServiceImpl(UserRepository userRepository, TokenRepository tokenRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Override
@@ -41,12 +41,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Token login(String email, String password) throws InvalidEmailException, InvalidPasswordException {
+    public Token login(String email, String password) throws InvalidEmailException, InvalidPasswordException, SessionCountExceededException {
         Optional<User> userOptional = this.userRepository.findUserByEmail(email);
         if(userOptional.isEmpty()) throw new InvalidEmailException("Invalid Email ID");
         User user = userOptional.get();
         boolean passwordMatches = this.bCryptPasswordEncoder.matches(password, user.getPassword());
         if(passwordMatches) {
+            // Session count check
+            int numberOfActiveSessions = this.tokenRepository.findNumberOfActiveSessions(user.getId());
+            if(numberOfActiveSessions >= 2) throw new SessionCountExceededException("At Max, Only 2 Active Sessions Are Allowed");
             // Issue a Token
             String value = RandomStringUtils.randomAlphanumeric(128);
             Calendar calendar = Calendar.getInstance();

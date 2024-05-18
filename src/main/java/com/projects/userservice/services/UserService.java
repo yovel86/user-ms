@@ -9,7 +9,7 @@ public interface UserService {
 
     User signup(String name, String email, String password) throws UserAlreadyExistsException;
 
-    Token login(String email, String password) throws InvalidEmailException, InvalidPasswordException;
+    Token login(String email, String password) throws InvalidEmailException, InvalidPasswordException, SessionCountExceededException;
 
     Token validateToken(String tokenValue) throws InvalidTokenException, ExpiredTokenException;
 
