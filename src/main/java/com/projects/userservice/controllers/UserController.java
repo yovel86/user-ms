@@ -84,9 +84,9 @@ public class UserController {
             Token token = this.userService.validateToken(tokenValue);
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (InvalidTokenException ie) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (ExpiredTokenException ete) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
     }
 
