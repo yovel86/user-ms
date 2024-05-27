@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, 30);
             Date thirtyDaysLater = calendar.getTime();
-            String value = jwtService.generateToken(user, thirtyDaysLater);
+            String value = this.jwtService.generateToken(user, thirtyDaysLater);
             Token token = new Token();
             token.setValue(value);
             token.setUser(user);
