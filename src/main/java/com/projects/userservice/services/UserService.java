@@ -5,6 +5,8 @@ import com.projects.userservice.models.Token;
 import com.projects.userservice.models.User;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 public interface UserService {
 
     User signup(String name, String email, String password) throws UserAlreadyExistsException;
@@ -14,5 +16,7 @@ public interface UserService {
     Token validateToken(String tokenValue) throws InvalidTokenException, ExpiredTokenException;
 
     void logout(String tokenValue) throws InvalidTokenException;
+
+    Optional<User> getUserById(long userId);
 
 }

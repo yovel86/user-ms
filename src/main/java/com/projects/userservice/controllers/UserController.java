@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -86,6 +88,13 @@ public class UserController {
         } catch (ExpiredTokenException ete) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable("id") long userId) {
+        Optional<User> userOptional = this.userService.getUserById(userId);
+        if(userOptional.isEmpty()) return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
     }
 
     @GetMapping("/health")

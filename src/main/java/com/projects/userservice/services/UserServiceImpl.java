@@ -91,4 +91,9 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public Optional<User> getUserById(long userId) {
+        return this.userRepository.findById(userId);
+    }
+
 }
