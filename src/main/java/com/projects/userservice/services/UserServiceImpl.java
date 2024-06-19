@@ -1,5 +1,6 @@
 package com.projects.userservice.services;
 
+import com.projects.userservice.dtos.UserProjection;
 import com.projects.userservice.exceptions.*;
 import com.projects.userservice.models.Token;
 import com.projects.userservice.models.User;
@@ -94,6 +95,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> getUserById(long userId) {
         return this.userRepository.findById(userId);
+    }
+
+    @Override
+    public Optional<UserProjection> getUserProfileById(long userId) {
+        return this.userRepository.findProjectedById(userId);
     }
 
 }

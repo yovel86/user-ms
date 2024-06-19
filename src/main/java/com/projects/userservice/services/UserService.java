@@ -1,5 +1,6 @@
 package com.projects.userservice.services;
 
+import com.projects.userservice.dtos.UserProjection;
 import com.projects.userservice.exceptions.*;
 import com.projects.userservice.models.Token;
 import com.projects.userservice.models.User;
@@ -18,5 +19,7 @@ public interface UserService {
     void logout(String tokenValue) throws InvalidTokenException;
 
     Optional<User> getUserById(long userId);
+
+    Optional<UserProjection> getUserProfileById(long userId);
 
 }

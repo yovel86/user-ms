@@ -1,9 +1,6 @@
 package com.projects.userservice.controllers;
 
-import com.projects.userservice.dtos.LoginRequestDTO;
-import com.projects.userservice.dtos.LogoutRequestDTO;
-import com.projects.userservice.dtos.SignupRequestDTO;
-import com.projects.userservice.dtos.ValidateTokenRequestDTO;
+import com.projects.userservice.dtos.*;
 import com.projects.userservice.exceptions.ExpiredTokenException;
 import com.projects.userservice.exceptions.InvalidRequestException;
 import com.projects.userservice.exceptions.InvalidTokenException;
@@ -93,6 +90,13 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable("id") long userId) {
         Optional<User> userOptional = this.userService.getUserById(userId);
+        if(userOptional.isEmpty()) return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
+    }
+
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<UserProjection> getUserProfileById(@PathVariable("id") long userId) {
+        Optional<UserProjection> userOptional = this.userService.getUserProfileById(userId);
         if(userOptional.isEmpty()) return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
         return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
     }
